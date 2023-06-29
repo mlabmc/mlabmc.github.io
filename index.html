@@ -1,0 +1,68 @@
+<!-- 2023-06-29 v1.18_install_v2.1.bat -->
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>v1.18_install_v2.1.bat</title>
+</head>
+<body>
+<pre>
+@echo off
+rem Naruhiko Ueda 2023-05-28 v2.1
+
+rem 管理者実行
+openfiles > nul 2>&1
+if not %ERRORLEVEL% == 0 (
+  powershell start-process \"%~f0\" -Verb runas
+  goto exit
+)
+echo quit minecraft...
+taskkill /F /T /IM Minecraft.Windows.exe
+echo download installer...
+if not exist "%TEMP%\v1.19_install" (mkdir "%TEMP%\v1.19_install")
+set "uninstall_url1=https://github.com/mlabmc/19/releases/download/MinecraftEducation_x86_1.19.52.0/MinecraftEducation_x86_1.19.52.0.msi"
+set "uninstall_url2=https://github.com/mlabmc/19/releases/download/MinecraftEducation_x86_1.19.53.0/MinecraftEducation_x86_1.19.53.0.msi"
+curl -L -o "%TEMP%\v1.19_install\MinecraftEducation_x86_1.19.52.0.msi" "%uninstall_url1%"
+curl -L -o "%TEMP%\v1.19_install\MinecraftEducation_x86_1.19.53.0.msi" "%uninstall_url2%"
+echo installer download complete!
+
+echo quit minecraft...
+taskkill /F /T /IM Minecraft.Windows.exe
+echo uninstall...
+cd "%TEMP%\v1.19_install"
+msiexec /x MinecraftEducation_x86_1.19.52.0.msi /passive
+msiexec /x MinecraftEducation_x86_1.19.53.0.msi /passive
+
+echo download v1.18...
+set "url1=https://github.com/mlabmc/18/releases/download/MinecraftEducation_x86_1.18.45.0/MinecraftEducation_x86_1.18.45.0.msi"
+set "url2=https://github.com/mlabmc/18/releases/download/MinecraftEducation_x86_1.18.45.0/MinecraftEducation_x86_1.18.45.01.cab"
+if not exist "%TEMP%\v1.18_install" (mkdir "%TEMP%\v1.18_install")
+curl -L -o "%TEMP%\v1.18_install\MinecraftEducation_x86_1.18.45.0.msi" "%url1%"
+curl -L -o "%TEMP%\v1.18_install\MinecraftEducation_x86_1.18.45.01.cab" "%url2%"
+echo download v1.18 complete!
+
+echo quit minecraft...
+taskkill /F /T /IM Minecraft.Windows.exe
+echo minecraft v1.18 installing...
+cd "%TEMP%\v1.18_install"
+msiexec /i MinecraftEducation_x86_1.18.45.0.msi /passive
+
+echo delete update scheduler...
+schtasks /delete /tn "Minecraft Education Automatic Updater" /f
+schtasks /delete /tn "Minecraft Education Weekly Updater" /f
+
+echo rename update program...
+cd "C:\Program Files (x86)\Microsoft Studios\Minecraft Education Edition"
+if exist "MinecraftEducationUpdater.exe.org" del "MinecraftEducationUpdater.exe.org"
+ren "MinecraftEducationUpdater.exe" "MinecraftEducationUpdater.exe.org"
+
+echo Finished all process！
+echo starting Minecraft Education...
+start "" "C:\Program Files (x86)\Microsoft Studios\Minecraft Education Edition\Minecraft.Windows.exe"
+
+del %0
+exit
+</pre>
+</body>
+</html>
