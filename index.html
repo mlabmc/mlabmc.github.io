@@ -1,15 +1,5 @@
-<!-- 2023-06-29 v1.18_install_v2.1.bat -->
-
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-  <meta charset="UTF-8">
-  <title>v1.18_install_v2.1.bat</title>
-</head>
-<body>
-<pre>
 @echo off
-rem Naruhiko Ueda 2023-05-28 v2.1
+rem Naruhiko Ueda 2023-06-11 v3.0
 
 rem 管理者実行
 openfiles > nul 2>&1
@@ -17,52 +7,100 @@ if not %ERRORLEVEL% == 0 (
   powershell start-process \"%~f0\" -Verb runas
   goto exit
 )
-echo quit minecraft...
-taskkill /F /T /IM Minecraft.Windows.exe
-echo download installer...
-if not exist "%TEMP%\v1.19_install" (mkdir "%TEMP%\v1.19_install")
-set "uninstall_url1=https://github.com/mlabmc/19/releases/download/MinecraftEducation_x86_1.19.52.0/MinecraftEducation_x86_1.19.52.0.msi"
-set "uninstall_url2=https://github.com/mlabmc/19/releases/download/MinecraftEducation_x86_1.19.53.0/MinecraftEducation_x86_1.19.53.0.msi"
-curl -L -o "%TEMP%\v1.19_install\MinecraftEducation_x86_1.19.52.0.msi" "%uninstall_url1%"
-curl -L -o "%TEMP%\v1.19_install\MinecraftEducation_x86_1.19.53.0.msi" "%uninstall_url2%"
-echo installer download complete!
 
-echo quit minecraft...
+chcp 65001 > nul
+
+echo マインクラフトを終了...
 taskkill /F /T /IM Minecraft.Windows.exe
-echo uninstall...
+echo インストーラーをダウンロード...
+set "url=https://d1pjd0t9x8mnxp.cloudfront.net/MinecraftEducation_x86_1.19.52.0.msi"
+if not exist "%TEMP%\v1.19_install" (mkdir "%TEMP%\v1.19_install")
+curl -L -o "%TEMP%\v1.19_install\MinecraftEducation_x86_1.19.52.0.msi" "%url%"
+echo インストーラーをダウンロード完了
+
+echo マインクラフトを終了...
+taskkill /F /T /IM Minecraft.Windows.exe
+echo アンインストール...
 cd "%TEMP%\v1.19_install"
 msiexec /x MinecraftEducation_x86_1.19.52.0.msi /passive
-msiexec /x MinecraftEducation_x86_1.19.53.0.msi /passive
 
-echo download v1.18...
-set "url1=https://github.com/mlabmc/18/releases/download/MinecraftEducation_x86_1.18.45.0/MinecraftEducation_x86_1.18.45.0.msi"
-set "url2=https://github.com/mlabmc/18/releases/download/MinecraftEducation_x86_1.18.45.0/MinecraftEducation_x86_1.18.45.01.cab"
+echo v1.18をダウンロード...
+set "url1=https://d1pjd0t9x8mnxp.cloudfront.net/MinecraftEducation_x86_1.18.45.0.msi"
+set "url2=https://d1pjd0t9x8mnxp.cloudfront.net/MinecraftEducation_x86_1.18.45.01.cab"
 if not exist "%TEMP%\v1.18_install" (mkdir "%TEMP%\v1.18_install")
 curl -L -o "%TEMP%\v1.18_install\MinecraftEducation_x86_1.18.45.0.msi" "%url1%"
 curl -L -o "%TEMP%\v1.18_install\MinecraftEducation_x86_1.18.45.01.cab" "%url2%"
-echo download v1.18 complete!
+echo v1.18ダウンロード完了
 
-echo quit minecraft...
+echo マインクラフトを終了...
 taskkill /F /T /IM Minecraft.Windows.exe
-echo minecraft v1.18 installing...
+echo v1.18インストール...
 cd "%TEMP%\v1.18_install"
 msiexec /i MinecraftEducation_x86_1.18.45.0.msi /passive
 
-echo delete update scheduler...
+echo アップデートスケジューラを削除...
 schtasks /delete /tn "Minecraft Education Automatic Updater" /f
 schtasks /delete /tn "Minecraft Education Weekly Updater" /f
 
-echo rename update program...
+echo アップデートプログラムをリネーム...
 cd "C:\Program Files (x86)\Microsoft Studios\Minecraft Education Edition"
 if exist "MinecraftEducationUpdater.exe.org" del "MinecraftEducationUpdater.exe.org"
 ren "MinecraftEducationUpdater.exe" "MinecraftEducationUpdater.exe.org"
 
-echo Finished all process！
-echo starting Minecraft Education...
-start "" "C:\Program Files (x86)\Microsoft Studios\Minecraft Education Edition\Minecraft.Windows.exe"
+set "directory=%USERPROFILE%\AppData\Roaming\Minecraft Education Edition\games\com.mojang\minecraftWorlds"
 
+echo マインクラフトを終了...
+taskkill /F /T /IM Minecraft.Windows.exe
+
+for /d %%i in ("%directory%\*") do (
+  setlocal enabledelayedexpansion
+  set "subdir=%%~nxi"
+  if exist "%%i\levelname.txt" (
+    type "%%i\levelname.txt"
+    echo.
+    echo !subdir!
+    echo ワールド処理中...
+    echo.
+    call :world_convert "!directory!\!subdir!"
+  )
+  endlocal
+)
+echo 処理が完了しました！
+echo Minecraft Educationを起動します...
+start "" "C:\Program Files (x86)\Microsoft Studios\Minecraft Education Edition\Minecraft.Windows.exe"
 del %0
 exit
-</pre>
-</body>
-</html>
+
+:world_convert
+@echo off
+setlocal
+
+set "FILENAME=%~1\level.dat"
+
+REM バックアップ作成
+copy "%FILENAME%" "%FILENAME%.org" > NUL
+
+REM 16進数に変換
+REM certutil -f -encodehex "%FILENAME%" "%FILENAME%.hex"
+powershell -Command "$bytes = [System.IO.File]::ReadAllBytes('"%FILENAME%"');$hexContent = [System.BitConverter]::ToString($bytes);$hexContent | Out-File -Encoding ASCII -NoNewline '"%FILENAME%.hex"'"
+
+REM level.dat.hex 書き換え
+powershell -Command "$content = Get-Content -Encoding ASCII '"%FILENAME%.hex"' -Raw; $content = $content.Remove(0, 11); $content = $content.Insert(0, '09-00-00-00'); [System.IO.File]::WriteAllText('"%FILENAME%.hex"', $content)"
+REM InventoryVersion
+powershell -Command "$content = Get-Content -Encoding ASCII '"%FILENAME%.hex"' -Raw; $index = $content.IndexOf('49-6E-76-65-6E-74-6F-72-79-56-65-72-73-69-6F-6E-'); $content = $content.Remove($index+48, 35);$content = $content.Insert($index+48, '07-00-31-2E-31-38-2E-34-35-01-0C-00'); [System.IO.File]::WriteAllText('"%FILENAME%.hex"', $content)"
+REM StorageVersion
+powershell -Command "$content = Get-Content -Encoding ASCII '"%FILENAME%.hex"' -Raw; $index = $content.IndexOf('53-74-6F-72-61-67-65-56-65-72-73-69-6F-6E-'); $content = $content.Remove($index+42, 11);$content = $content.Insert($index+42, '09-00-00-00'); [System.IO.File]::WriteAllText('"%FILENAME%.hex"', $content)"
+REM MinimumCompatibleClientVersion
+powershell -Command "$content = Get-Content -Encoding ASCII '"%FILENAME%.hex"' -Raw; $index = $content.IndexOf('4D-69-6E-69-6D-75-6D-43-6F-6D-70-61-74-69-62-6C-65-43-6C-69-65-6E-74-56-65-72-73-69-6F-6E-'); $content = $content.Remove($index+90, 84);$content = $content.Insert($index+90, '03-05-00-00-00-01-00-00-00-12-00-00-00-1E-00-00-00-00-00-00-00-00-00-00-00-01-0F-00'); [System.IO.File]::WriteAllText('"%FILENAME%.hex"', $content)"
+
+REM .hex ファイルをバイナリに変換して元のファイルに戻す
+certutil -f -decodehex "%FILENAME%.hex" "%FILENAME%.new" > NUL
+
+REM 編集後のファイルで元のファイルを上書き
+copy /y "%FILENAME%.new" "%FILENAME%" > NUL
+
+REM 一時ファイルの削除
+del "%FILENAME%.hex" "%FILENAME%.new"
+
+endlocal
+exit /b 0
