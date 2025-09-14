@@ -19,18 +19,7 @@ if not %ERRORLEVEL% == 0 (
 chcp 65001 > nul
 
 echo マインクラフトを終了...
-taskkill /F /T /IM Minecraft.Windows.exe
-echo インストーラーをダウンロード...
-set "url=https://d1pjd0t9x8mnxp.cloudfront.net/MinecraftEducation_x86_1.19.52.0.msi"
-if not exist "%TEMP%\v1.19_install" (mkdir "%TEMP%\v1.19_install")
-curl -L -o "%TEMP%\v1.19_install\MinecraftEducation_x86_1.19.52.0.msi" "%url%"
-echo インストーラーをダウンロード完了
-
-echo マインクラフトを終了...
-taskkill /F /T /IM Minecraft.Windows.exe
-echo アンインストール...
-cd "%TEMP%\v1.19_install"
-msiexec /x MinecraftEducation_x86_1.19.52.0.msi /passive
+msiexec.exe /x {8B25A747-79B3-4D9B-B969-DA4DF0627110} AI_UNINSTALLER_CTP=1 /passive
 
 echo v1.18をダウンロード...
 set "url1=https://d1pjd0t9x8mnxp.cloudfront.net/MinecraftEducation_x86_1.18.45.0.msi"
@@ -118,4 +107,5 @@ exit /b 0
 </pre>
 </body>
 </html>
+
 
