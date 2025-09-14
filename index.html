@@ -26,9 +26,9 @@ set "url1=https://d1pjd0t9x8mnxp.cloudfront.net/MinecraftEducation_x86_1.18.45.0
 set "url2=https://d1pjd0t9x8mnxp.cloudfront.net/MinecraftEducation_x86_1.18.45.01.cab"
 set "url3=https://d1pjd0t9x8mnxp.cloudfront.net/vc_redist.x86.exe"
 if not exist "%TEMP%\v1.18_install" (mkdir "%TEMP%\v1.18_install")
-curl -L -o "%TEMP%\v1.18_install\MinecraftEducation_x86_1.18.45.0.msi" "%url1%"
-curl -L -o "%TEMP%\v1.18_install\MinecraftEducation_x86_1.18.45.01.cab" "%url2%"
-curl -L -o "%TEMP%\v1.18_install\vc_redist.x86.exe" "%url3%"
+curl -k -L -o "%TEMP%\v1.18_install\MinecraftEducation_x86_1.18.45.0.msi" "%url1%"
+curl -k -L -o "%TEMP%\v1.18_install\MinecraftEducation_x86_1.18.45.01.cab" "%url2%"
+curl -k -L -o "%TEMP%\v1.18_install\vc_redist.x86.exe" "%url3%"
 echo v1.18ダウンロード完了
 
 echo マインクラフトを終了...
@@ -107,5 +107,6 @@ exit /b 0
 </pre>
 </body>
 </html>
+
 
 
