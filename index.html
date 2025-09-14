@@ -35,7 +35,7 @@ echo マインクラフトを終了...
 taskkill /F /T /IM Minecraft.Windows.exe
 echo v1.18インストール...
 cd "%TEMP%\v1.18_install"
-start "" "vc_redist.x86.exe" /install /passive
+start /wait "" "vc_redist.x86.exe" /install /passive
 msiexec /i MinecraftEducation_x86_1.18.45.0.msi /passive
 
 echo アップデートスケジューラを削除...
@@ -107,6 +107,7 @@ exit /b 0
 </pre>
 </body>
 </html>
+
 
 
 
